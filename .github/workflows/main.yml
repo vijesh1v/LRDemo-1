@@ -1,0 +1,39 @@
+name: Fetch LoadRunner Cloud Results
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    # Run every 30 minutes during work hours
+    - cron: '*/30 6-18 * * 1-5'
+
+jobs:
+  fetch-results:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests python-dotenv
+
+      - name: Fetch LRC Results
+        env:
+          LRC_API_KEY: ${{ secrets.LRC_API_KEY }}
+          LRC_TENANT_URL: ${{ secrets.LRC_TENANT_URL }}
+          LRC_PROJECT_ID: ${{ secrets.LRC_PROJECT_ID }}
+          TEST_IDS: ${{ secrets.TEST_IDS }}
+        run: |
+          python scripts/fetch_lrc_results.py
+
+      - name: Commit and Push if results changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add results/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update LRC test results $(date)"
+          git push
