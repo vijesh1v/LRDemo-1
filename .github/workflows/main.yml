@@ -1,9 +1,6 @@
 name: Fetch LoadRunner Cloud Results
 on:
   workflow_dispatch:  # Manual trigger
-  schedule:
-    # Run every 30 minutes during work hours
-    - cron: '*/30 6-18 * * 1-5'
 
 jobs:
   fetch-results:
